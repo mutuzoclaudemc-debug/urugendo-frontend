@@ -68,8 +68,8 @@
             </div>
             <div>
                 <div class="font-semibold">{{ $ride['driver']['full_name'] }}</div>
-                @if($ride['driver']['average_rating'])
-                    <div class="text-xs text-yellow-500">★ {{ number_format($ride['driver']['average_rating'], 1) }} · {{ $ride['driver']['total_trips'] }} trips</div>
+                @if(!empty($ride['driver']['average_rating']))
+                    <div class="text-xs text-yellow-500">★ {{ number_format($ride['driver']['average_rating'], 1) }} · {{ $ride['driver']['total_trips'] ?? 0 }} trips</div>
                 @else
                     <div class="text-xs text-gray-400">New driver</div>
                 @endif
