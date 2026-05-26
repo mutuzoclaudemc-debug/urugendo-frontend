@@ -18,18 +18,14 @@ RUN a2enmod rewrite
 
 WORKDIR /var/www/html
 
+# Copy full app first
+COPY . .
+
 # Install PHP dependencies
-COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Install Node dependencies and build assets
-COPY package.json package-lock.json vite.config.js ./
-COPY resources/css resources/css
-COPY resources/js resources/js
+# Install Node dependencies and build assets (output stays in public/build/)
 RUN npm ci && npm run build
-
-# Copy the rest of the app
-COPY . .
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache \
@@ -40,7 +36,6 @@ RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' \
     /etc/apache2/sites-available/000-default.conf \
     /etc/apache2/conf-available/docker-php.conf
 
-# Render injects $PORT — Apache must listen on it
 COPY docker/apache-start.sh /usr/local/bin/apache-start.sh
 RUN chmod +x /usr/local/bin/apache-start.sh
 
