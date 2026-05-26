@@ -1,5 +1,5 @@
 app = "urugendo-frontend"
-primary_region = "fra"  # Frankfurt — closest Fly.io region to Rwanda
+primary_region = "fra"
 
 [build]
   dockerfile = "Dockerfile"

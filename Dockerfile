@@ -13,11 +13,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Configure Apache
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
-    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
-    && a2enmod rewrite
+# Enable Apache rewrite
+RUN a2enmod rewrite
 
 WORKDIR /var/www/html
 
@@ -38,9 +35,13 @@ COPY . .
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Cache Laravel config/routes/views
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Point Apache at Laravel's public/ folder
+RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' \
+    /etc/apache2/sites-available/000-default.conf \
+    /etc/apache2/conf-available/docker-php.conf
 
-EXPOSE 80
+# Render injects $PORT — Apache must listen on it
+COPY docker/apache-start.sh /usr/local/bin/apache-start.sh
+RUN chmod +x /usr/local/bin/apache-start.sh
+
+CMD ["/usr/local/bin/apache-start.sh"]
